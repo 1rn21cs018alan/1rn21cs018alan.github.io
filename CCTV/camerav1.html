@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <img id="img" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" alt="Camera Feed">
+    <hr>
+    <input id="urlsetter" placeholder="Enter Redis URL"><button onclick="setUrl()">Set URL</button><br><br>
+    <input id="tokensetter" placeholder="Enter Redis Token"><button onclick="setToken()">Set Token</button>
+    <script>
+        function setUrl() {
+            const url = document.getElementById("urlsetter").value;
+            localStorage.setItem("REDIS_URL", url);
+            alert("URL set successfully!");
+        }
+        function setToken() {
+            const token = document.getElementById("tokensetter").value;
+            localStorage.setItem("REDIS_TOKEN", token);
+            alert("Token set successfully!");
+        }
+        async function getImg() {
+            try {
+                const data = await fetch(localStorage.getItem("REDIS_URL") + "/pipeline", {
+                    "headers": {
+                        "authorization": "Bearer " + localStorage.getItem("REDIS_TOKEN"),
+                        "cache-control": "no-cache",
+                        "content-type": "application/json",
+                        "pragma": "no-cache",
+                        "upstash-encoding": "base64",
+                    },
+                    "body": "[[\"get\",\"cameraFeed1\"]]",
+                    "method": "POST",
+                    "mode": "cors",
+                    "credentials": "include"
+                });
+                const res = await data.json();
+                //console.log(res);
+                const uri = res[0]["result"];
+                const img = document.querySelector("img");
+                img.src = `data:image/webp;base64,${uri}`;
+            } catch (e) {
+                console.error("Error fetching image:", e);
+            }
+            setTimeout(getImg, 1000);
+        }
+        getImg();
+    </script>
+</body>
+
+</html>
