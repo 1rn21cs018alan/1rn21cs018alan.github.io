@@ -8,6 +8,7 @@
 </head>
 
 <body>
+    <p>Image Taken At: <span id="timestamp">N/A</span></p>
     <img id="img" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" alt="Camera Feed">
     <hr>
     <input id="urlsetter" placeholder="Enter Redis URL"><button onclick="setUrl()">Set URL</button><br><br>
@@ -52,11 +53,29 @@
                     "mode": "cors",
                     "credentials": "include"
                 });
-                const res = await data.json();
+                let res = await data.json();
                 //console.log(res);
                 const uri = res[0]["result"];
                 const img = document.querySelector("img");
                 img.src = `data:image/webp;base64,${uri}`;
+                const timestampData = await fetch(url + "/pipeline", {
+                    "headers": {
+                        "authorization": "Bearer " + token,
+                        "cache-control": "no-cache",
+                        "content-type": "application/*",
+                        "pragma": "no-cache",
+                        "upstash-encoding": "base64",
+                    },
+                    "body": "[[\"get\",\"timestamp\"]]",
+                    "method": "POST",
+                    "mode": "cors",
+                    "credentials": "include"
+                });
+                res = await timestampData.json();
+                //console.log(res);
+                const timestamp = atob(res[0]["result"]);
+                const timestampElement = document.getElementById("timestamp");
+                timestampElement.textContent = timestamp;
             } catch (e) {
                 console.error("Error fetching image:", e);
             }
