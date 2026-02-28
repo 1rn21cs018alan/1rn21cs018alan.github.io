@@ -25,9 +25,15 @@
         }
         async function getImg() {
             try {
-                const data = await fetch(localStorage.getItem("REDIS_URL") + "/pipeline", {
+                const url=localStorage.getItem("REDIS_URL")
+                const token=localStorage.getItem("REDIS_TOKEN")
+                if (!url || !token) {
+                    console.warn("URL or Token not set. Please set them to fetch the camera feed.");
+                    throw new Error("URL or Token not set");
+                }
+                const data = await fetch(url + "/pipeline", {
                     "headers": {
-                        "authorization": "Bearer " + localStorage.getItem("REDIS_TOKEN"),
+                        "authorization": "Bearer " + token,
                         "cache-control": "no-cache",
                         "content-type": "application/json",
                         "pragma": "no-cache",
