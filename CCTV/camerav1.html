@@ -13,6 +13,14 @@
     <input id="urlsetter" placeholder="Enter Redis URL"><button onclick="setUrl()">Set URL</button><br><br>
     <input id="tokensetter" placeholder="Enter Redis Token"><button onclick="setToken()">Set Token</button>
     <script>
+        const getURL=(new URL(window.location.href)).searchParams.get("url");
+        const getToken=(new URL(window.location.href)).searchParams.get("token");
+        if(getURL){
+            localStorage.setItem("REDIS_URL", getURL);
+        }
+        if(getToken){
+            localStorage.setItem("REDIS_TOKEN", getToken);
+        }
         function setUrl() {
             const url = document.getElementById("urlsetter").value;
             localStorage.setItem("REDIS_URL", url);
@@ -52,7 +60,7 @@
             } catch (e) {
                 console.error("Error fetching image:", e);
             }
-            setTimeout(getImg, 1000);
+            setTimeout(getImg, 3000);
         }
         getImg();
     </script>
