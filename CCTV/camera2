@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #img {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <p>Image Taken At: <span id="timestamp">N/A</span></p>
+    <img id="img" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" alt="Camera Feed">
+    <hr>
+    <input id="urlsetter" placeholder="Enter Redis URL"><button onclick="setUrl()">Set URL</button><br><br>
+    <input id="tokensetter" placeholder="Enter Redis Token"><button onclick="setToken()">Set Token</button>
+    <script>
+        const getURL = (new URL(window.location.href)).searchParams.get("url");
+        const getToken = (new URL(window.location.href)).searchParams.get("token");
+        let refreshToRemoveParams = false;
+        const stopRequestingAfterNRequest = 600;
+        var requestsSent = 0;
+        const refreshPeriodMillisecond=2000;
+        if (getURL) {
+            localStorage.setItem("REDIS_URL", getURL);
+            refreshToRemoveParams = true
+        }
+        if (getToken) {
+            localStorage.setItem("REDIS_TOKEN", getToken);
+            refreshToRemoveParams = true
+        }
+        if (refreshToRemoveParams) {
+            window.location.href = window.location.origin + window.location.pathname
+        }
+        function setUrl() {
+            const url = document.getElementById("urlsetter").value;
+            localStorage.setItem("REDIS_URL", url);
+            alert("URL set successfully!");
+        }
+        function setToken() {
+            const token = document.getElementById("tokensetter").value;
+            localStorage.setItem("REDIS_TOKEN", token);
+            alert("Token set successfully!");
+        }
+        async function getImg() {
+            try {
+                if (!document.hidden) {
+                    if (requestsSent < stopRequestingAfterNRequest) {
+                        const url = localStorage.getItem("REDIS_URL")
+                        const token = localStorage.getItem("REDIS_TOKEN")
+                        if (!url || !token) {
+                            console.warn("URL or Token not set. Please set them to fetch the camera feed.");
+                            throw new Error("URL or Token not set");
+                        }
+                        const data = await fetch(url + "/pipeline", {
+                            "headers": {
+                                "authorization": "Bearer " + token,
+                                "cache-control": "no-cache",
+                                "content-type": "application/json",
+                                "pragma": "no-cache",
+                                "upstash-encoding": "base64",
+                            },
+                            "body": "[[\"get\",\"cameraFeed1\"]]",
+                            "method": "POST",
+                            "mode": "cors",
+                            "credentials": "include"
+                        });
+                        requestsSent += 1;
+                        let res = await data.json();
+                        //console.log(res);
+                        const uri = res[0]["result"];
+                        const img = document.querySelector("img");
+                        img.src = `data:image/webp;base64,${uri.slice(32)}`;
+                        const timestamp = atob(uri.slice(0, 32));
+                        const timestampElement = document.getElementById("timestamp");
+                        timestampElement.textContent = timestamp;
+                    }
+                    else {
+                        const img = document.querySelector("img");
+                        img.src = `https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif`;
+                        const timestampElement = document.getElementById("timestamp");
+                        timestampElement.textContent = "Camera Timed Out. Please Refresh the page";
+                    }
+                }
+            } catch (e) {
+                console.error("Error fetching image:", e);
+            }
+            if (requestsSent<stopRequestingAfterNRequest){
+                setTimeout(getImg, refreshPeriodMillisecond);
+            }
+        }
+        getImg();
+    </script>
+</body>
+
+</html>
