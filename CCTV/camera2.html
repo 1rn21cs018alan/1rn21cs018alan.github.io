@@ -4,30 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CCTV</title>
-    <link rel="icon" href="/icon/favicon2.png">
+    <title>Document</title>
     <style>
         #img {
-            width: 100vw;
-            height: 100vh;
-            object-fit:contain;
+            width: 100%;
+            height: auto;
+        }
+        .red{
+            background-color: red;
         }
     </style>
 </head>
 
 <body>
-    <p>Image Taken At: <span id="timestamp">N/A</span></p>
-    <img id="img" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" alt="Camera Feed">
-    <hr>
-    <input id="urlsetter" placeholder="Enter Redis URL"><button onclick="setUrl()">Set URL</button><br><br>
-    <input id="tokensetter" placeholder="Enter Redis Token"><button onclick="setToken()">Set Token</button>
+    <div id="imageContainer">
+        <p>Image Taken At: <span id="timestamp">N/A</span></p>
+        <img id="img" src="https://upload.wikimedia.org/wikipedia/commons/c/c7/Loading_2.gif" alt="Camera Feed">
+        <hr>
+    </div>
     <script>
-        const getURL = (new URL(window.location.href)).searchParams.get("url");
-        const getToken = (new URL(window.location.href)).searchParams.get("token");
+        const currURL = (new URL(document.URL));
+        const getURL = currURL.searchParams.get("url");
+        const getToken = currURL.searchParams.get("token");
         let refreshToRemoveParams = false;
         const stopRequestingAfterNRequest = 600;
         var requestsSent = 0;
-        const refreshPeriodMillisecond=2000;
+        const refreshPeriodMillisecond = 2000;
         if (getURL) {
             localStorage.setItem("REDIS_URL", getURL);
             refreshToRemoveParams = true
@@ -37,7 +39,14 @@
             refreshToRemoveParams = true
         }
         if (refreshToRemoveParams) {
-            window.location.href = window.location.origin + window.location.pathname
+            const d = document.querySelector("#imageContainer")
+            d.parentElement.removeChild(d)
+            const link = document.createElement("a")
+            link.innerText="Initialized! Press this link to reload the page"
+            link.href =currURL.origin+currURL.pathname
+            requestsSent=stopRequestingAfterNRequest;
+            document.body.appendChild(link)
+            document.body.className="red"
         }
         function setUrl() {
             const url = document.getElementById("urlsetter").value;
@@ -79,8 +88,13 @@
                         const img = document.querySelector("img");
                         img.src = `data:image/webp;base64,${uri.slice(32)}`;
                         const timestamp = atob(uri.slice(0, 32));
+                        const timeDifference=((new Date()).valueOf()-(new Date(timestamp)).valueOf())/1000
                         const timestampElement = document.getElementById("timestamp");
                         timestampElement.textContent = timestamp;
+                        if(timeDifference>60){
+                            timestampElement.textContent="WARNING over 5 mins old!"+timestampElement.textContent
+                            document.body.className="red"
+                        }
                     }
                     else {
                         const img = document.querySelector("img");
@@ -92,7 +106,7 @@
             } catch (e) {
                 console.error("Error fetching image:", e);
             }
-            if (requestsSent<stopRequestingAfterNRequest){
+            if (requestsSent < stopRequestingAfterNRequest) {
                 setTimeout(getImg, refreshPeriodMillisecond);
             }
         }
