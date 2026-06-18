@@ -91,7 +91,7 @@
                         const timeDifference=((new Date()).valueOf()-(new Date(timestamp)).valueOf())/1000
                         const timestampElement = document.getElementById("timestamp");
                         timestampElement.textContent = timestamp;
-                        if(timeDifference>60){
+                        if(timeDifference>300){
                             timestampElement.textContent="WARNING over 5 mins old!"+timestampElement.textContent
                             document.body.className="red"
                         }
