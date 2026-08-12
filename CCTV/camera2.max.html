@@ -23,9 +23,10 @@
 <body>
     <div id="imageContainer">
         <p>Image Taken At: <span id="timestamp">N/A</span></p>
+        <img id="cst" alt="Loading Live Feed(0/2)">
+        <hr>
         <img id="img" src="https://tossd.online/modules/k7/imgs/lg.rotating-squares-preloader-gif.gif" alt="SLOW Camera Feed">
         <hr>
-        <img id="cst" alt="Live Feed">
     </div>
     <script>
         (function _(){
@@ -139,13 +140,15 @@
                     "credentials": "include"
                 });
                 requestsSent += 1;
+                const imgElement = document.getElementById('cst');
                 const wsUrl = JSON.parse(await data.text())[0]['result'];
+                const alt=(x)=>imgElement.setAttribute("alt",x);
+                alt("Loading Live Feed(1/2)");
                 const ws= new WebSocket(wsUrl);
                 ws.binaryType='blob';
                 ws.onmessage = (event) => {
                     if(event.data instanceof Blob){
                         const imageUrl = URL.createObjectURL(event.data);
-                        const imgElement = document.getElementById('cst');
                         if (imgElement) {
                             // Revoke the old URL memory reference if one already existed to avoid leaks
                             if (imgElement.src && imgElement.src.startsWith('blob:')) {
@@ -157,6 +160,8 @@
                         }
                     }
                 };
+                ws.onopen=()=>alt("Loading Live Feed(2/2)");
+                ws.onclose=()=>alt("Live Feed Stopped");
             }
             getImg();
             getTunnel();
