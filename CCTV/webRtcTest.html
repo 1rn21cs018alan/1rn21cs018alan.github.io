@@ -20,7 +20,7 @@ async function startReceiver(offerString) {
     peerB.onicecandidate = (event) => {
         if (event.candidate) {
             answerCandidate[1]={ type: 'candidate', candidate: event.candidate }
-            if(answerCandidate[0])console.log(JSON.stringify(answerCandidate))
+            if(answerCandidate[0])document.body.innerText=(JSON.stringify(answerCandidate))
             // console.log("📤 [SIGNAL TO SENDER] Send this ICE Candidate string back:");
             // console.log(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
         }
@@ -36,7 +36,7 @@ async function startReceiver(offerString) {
 
     // 5. Log the SDP Answer that you must send back to the Sender
     answerCandidate[0]={ type: 'answer', sdp: answer.sdp }
-    if(answerCandidate[1])console.log(JSON.stringify(answerCandidate))
+    if(answerCandidate[1])document.body.innerText=(JSON.stringify(answerCandidate))
     // console.log("📤 [SIGNAL TO SENDER] Send this SDP Answer object:");
     // console.log(JSON.stringify({ type: 'answer', sdp: answer.sdp }));
     
