@@ -1,0 +1,59 @@
+// copy paste, console based webrtc reciever test
+<script>
+  let peerB;
+let dataChannelB;
+let answerCandidate=[false,false]
+const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+async function startReceiver(offerString) {
+    peerB = new RTCPeerConnection(config);
+
+    // 1. Listen for the incoming data channel structure from the Sender
+    peerB.ondatachannel = (event) => {
+        dataChannelB = event.channel;
+        dataChannelB.onopen = () => console.log("🟢 DataChannel on Receiver is OPEN! Test: dataChannelB.send('Hello')");
+        dataChannelB.onmessage = (e) => console.log(`📩 Receiver received: "${e.data}"`);
+        window.dataChannelB = dataChannelB;
+    };
+
+    // 2. Log ICE Candidates that you must send back to the Sender
+    peerB.onicecandidate = (event) => {
+        if (event.candidate) {
+            answerCandidate[1]={ type: 'candidate', candidate: event.candidate }
+            if(answerCandidate[0])console.log(JSON.stringify(answerCandidate))
+            // console.log("📤 [SIGNAL TO SENDER] Send this ICE Candidate string back:");
+            // console.log(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+        }
+    };
+
+    // 3. Parse and set the Sender's SDP Offer
+    const offer = typeof offerString === 'string' ? JSON.parse(offerString) : offerString;
+    await peerB.setRemoteDescription(new RTCSessionDescription(offer));
+
+    // 4. Create and set local SDP Answer
+    const answer = await peerB.createAnswer();
+    await peerB.setLocalDescription(answer);
+
+    // 5. Log the SDP Answer that you must send back to the Sender
+    answerCandidate[0]={ type: 'answer', sdp: answer.sdp }
+    if(answerCandidate[1])console.log(JSON.stringify(answerCandidate))
+    // console.log("📤 [SIGNAL TO SENDER] Send this SDP Answer object:");
+    // console.log(JSON.stringify({ type: 'answer', sdp: answer.sdp }));
+    
+    window.peerB = peerB;
+}
+
+async function handleCandidateFromSender(candidateString) {
+    const data = typeof candidateString === 'string' ? JSON.parse(candidateString) : candidateString;
+    await peerB.addIceCandidate(new RTCIceCandidate(data.candidate));
+    console.log("📡 Candidate from Sender added.");
+}
+async function consoleStart(){
+    let txt=prompt();
+    let jsonData=JSON.parse(txt);
+    let offer=jsonData[0],candidate=jsonData[1];
+    await startReceiver(offer);
+    await handleCandidateFromSender(candidate);
+}
+consoleStart()
+</script>
