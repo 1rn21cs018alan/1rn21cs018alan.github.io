@@ -31,6 +31,7 @@
     <script>
         (function _(){
             const doc=document;
+            const documentGetElementById=(x)=>doc.getElementById(x);
             const set=(x,y)=>localStorage.setItem(x,y);
             const get=(x)=>localStorage.getItem(x);
             const currURL = (new URL(doc.URL));
@@ -49,7 +50,7 @@
                 refreshToRemoveParams = true
             }
             if (refreshToRemoveParams) {
-                const d = doc.querySelector("#imageContainer")
+                const d = documentGetElementById("imageContainer")
                 d.parentElement.removeChild(d)
                 const link = doc.createElement("a")
                 link.innerText="Initialized! Press this link to reload the page"
@@ -59,12 +60,12 @@
                 doc.body.className="red"
             }
             function setUrl() {
-                const url = doc.getElementById("urlsetter").value;
+                const url = documentGetElementById("urlsetter").value;
                 set("REDIS_URL", url);
                 alert("URL set successfully!");
             }
             function setToken() {
-                const token = doc.getElementById("tokensetter").value;
+                const token = documentGetElementById("tokensetter").value;
                 set("REDIS_TOKEN", token);
                 alert("Token set successfully!");
             }
@@ -95,21 +96,24 @@
                             let res = await data.json();
                             //console.log(res);
                             const uri = res[0]["result"];
-                            const img = doc.getElementById("img");
+                            const img = documentGetElementById("img");
                             img.src = `data:image/webp;base64,${uri.slice(32)}`;
                             const timestamp = atob(uri.slice(0, 32));
                             const timeDifference=((new Date()).valueOf()-(new Date(timestamp)).valueOf())/1000
-                            const timestampElement = doc.getElementById("timestamp");
+                            const timestampElement = documentGetElementById("timestamp");
                             timestampElement.textContent = timestamp;
                             if(timeDifference>300){
                                 timestampElement.textContent="WARNING over 5 mins old!"+timestampElement.textContent
                                 doc.body.className="red"
                             }
+                            else{
+                                doc.body.classList.remove("red")
+                            }
                         }
                         else {
-                            const img = doc.getElementById("img");
+                            const img = documentGetElementById("img");
                             img.src = `https://tossd.online/modules/k7/imgs/lg.rotating-squares-preloader-gif.gif`;
-                            const timestampElement = doc.getElementById("timestamp");
+                            const timestampElement = documentGetElementById("timestamp");
                             timestampElement.textContent = "Camera Timed Out. Please Refresh the page";
                         }
                     }
@@ -140,7 +144,7 @@
                     "credentials": "include"
                 });
                 requestsSent += 1;
-                const imgElement = document.getElementById('cst');
+                const imgElement = documentGetElementById('cst');
                 const wsUrl = JSON.parse(await data.text())[0]['result'];
                 const alt=(x)=>imgElement.setAttribute("alt",x);
                 alt("Loading Live Feed(1/2)");
@@ -161,7 +165,13 @@
                     }
                 };
                 ws.onopen=()=>alt("Loading Live Feed(2/2)");
-                ws.onclose=()=>alt("Live Feed Stopped");
+                ws.onclose=()=>{
+                    alt("=====Live Feed Stopped=====");
+                    setTimeout(()=>imgElement.src='',10000);
+                }
+                imgElement.addEventListener("load",()=>{
+                    imgElement.style.aspectRatio=imgElement.naturalWidth/(imgElement.naturalHeight*2);
+                })
             }
             getImg();
             getTunnel();
