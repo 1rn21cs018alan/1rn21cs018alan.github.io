@@ -1,0 +1,22 @@
+{
+  "name": "CCTV Camera Version 2",
+  "short_name": "CCTV",
+  "id": "/CCTV/",
+  "start_url": "/CCTV/camera2.html",
+  "scope": "/CCTV/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4A90E2",
+  "icons": [
+    {
+      "src": "https://picsum.photos",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
