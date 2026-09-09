@@ -9,13 +9,8 @@
   "theme_color": "#4A90E2",
   "icons": [
     {
-      "src": "https://picsum.photos",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://picsum.photos",
-      "sizes": "512x512",
+      "src": "https://cdn.create.vista.com/api/media/small/68106555/stock-vector-security-camera-icon-rounded-squares-button",
+      "sizes": "600x600",
       "type": "image/png"
     }
   ]
